@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "target": "ES5",
+    "module": "esnext",
+    "skipLibCheck": true,
+    "declaration": true,
+    "rootDir": "src",
+    "isolatedModules": true,
+    "baseUrl": "./"
+  },
+  "include": [
+    "src/index.ts"
+  ]
+}
