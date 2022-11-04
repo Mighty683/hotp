@@ -1,11 +1,4 @@
-export declare type HOTPOptions = {
-    digitsCount?: number;
-};
-export declare type TOTPOptions = HOTPOptions & {
-    stepTime?: number;
-    t0?: number;
-    timestamp: number;
-};
+import { TOTPOptions, HOTPOptions } from "./types";
 /**
  *
  * TOTP: Time-Based One-Time Password Algorithm
@@ -28,7 +21,8 @@ export declare function generateTOTP(secret: string, options: TOTPOptions): Prom
     MUST be synchronized between the HOTP generator (client)
     and the HOTP validator (server).
  * @param options.digitsCount - length of generated HOTP, default 6
- }
+ * @param options.algorithm - algorithm used possible values: sha-1, sha-256, default: sha-1
+  
  * @returns
  */
 export declare function generateHOTP(secret: string, counter: number, options?: HOTPOptions): Promise<string>;

@@ -30,7 +30,3 @@ let totp = generateTOTP("some-secret-to-share-with-server", {
   timestamp: Date.now(),
 });
 ```
-
-## TODO:
-
-- Add SHA256 algorithm

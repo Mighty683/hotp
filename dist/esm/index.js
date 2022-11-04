@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { browserHmac, isNodeEnv, nodeHmac, padZeroStart } from "./helpers";
 /**
  *
  * TOTP: Time-Based One-Time Password Algorithm
@@ -36,12 +37,13 @@ export function generateTOTP(secret, options) {
     MUST be synchronized between the HOTP generator (client)
     and the HOTP validator (server).
  * @param options.digitsCount - length of generated HOTP, default 6
- }
+ * @param options.algorithm - algorithm used possible values: sha-1, sha-256, default: sha-1
+  
  * @returns
  */
 export function generateHOTP(secret, counter, options) {
     return __awaiter(this, void 0, void 0, function* () {
-        let hmacResult = yield hmac(secret, counter);
+        let hmacResult = yield hmac(secret, counter, options === null || options === void 0 ? void 0 : options.algorithm);
         let digitsCount = (options === null || options === void 0 ? void 0 : options.digitsCount) || 6;
         let codeValue = dynamicTruncate(hmacResult) % Math.pow(10, digitsCount);
         let result = codeValue.toString();
@@ -55,50 +57,13 @@ function dynamicTruncate(source) {
         ((source[offset + 2] & 0xff) << 8) |
         (source[offset + 3] & 0xff));
 }
-function hmac(secret, counter) {
+function hmac(secret, counter, algorithm) {
     return __awaiter(this, void 0, void 0, function* () {
         if (isNodeEnv()) {
-            return new Uint8Array((yield import("crypto"))
-                .createHmac("sha1", Buffer.from(secret))
-                .update(convertIntegerIntoByteBuffer(counter))
-                .digest());
+            return nodeHmac(secret, counter, algorithm);
         }
         else {
-            let crypto = window.crypto;
-            let key = yield crypto.subtle.importKey("raw", new TextEncoder().encode(secret), {
-                name: "HMAC",
-                hash: {
-                    name: "SHA-1",
-                },
-            }, false, ["sign"]);
-            return new Uint8Array(yield crypto.subtle.sign({
-                name: "HMAC",
-                hash: {
-                    name: "SHA-1",
-                },
-            }, key, convertIntegerIntoByteBuffer(counter)));
+            return browserHmac(secret, counter, algorithm);
         }
     });
-}
-function convertIntegerIntoByteBuffer(integer) {
-    let hexInteger = padZeroStart(integer.toString(16), 16);
-    let bytes = [];
-    for (let counter = 0; counter < hexInteger.length; counter += 2) {
-        bytes.push(parseInt(hexInteger.substring(counter, counter + 2), 16));
-    }
-    return new Int8Array(bytes);
-}
-function padZeroStart(source, length) {
-    while (source.length < length) {
-        source = "0" + source;
-    }
-    return source;
-}
-function isNodeEnv() {
-    try {
-        return !!global;
-    }
-    catch (_a) {
-        return false;
-    }
 }

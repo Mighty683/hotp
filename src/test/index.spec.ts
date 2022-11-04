@@ -12,6 +12,13 @@ describe("generateHOTP", () => {
     expect(await generateHOTP(secret, 6)).toBe("287922");
     expect(await generateHOTP(secret, 9)).toBe("520489");
   });
+  it("should generate proper HOTP sha256", async () => {
+    expect(
+      await generateHOTP(secret, 0, {
+        algorithm: "sha-256",
+      })
+    ).toBe("875740");
+  });
 });
 
 describe("generateTOTP", () => {
@@ -38,5 +45,15 @@ describe("generateTOTP", () => {
         stepTime: 30,
       })
     ).toBe("081804");
+  });
+  it("should generate proper TOTP sha256", async () => {
+    expect(
+      await generateTOTP(secret, {
+        t0,
+        timestamp: new Date("1970-01-01T00:00:58Z").valueOf(),
+        stepTime: 30,
+        algorithm: "sha-256",
+      })
+    ).toBe("247374");
   });
 });
