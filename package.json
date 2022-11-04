@@ -6,10 +6,15 @@
   "main": "dist/csj/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
-    "build:esm": "tsc --module es2015 --target es5 --outDir dist/esm --declarationDir dist/esm",
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc --module esnext --target es6 --outDir dist/esm --declarationDir dist/esm",
     "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs --declarationDir dist/cjs",
-    "test": "jest test",
-    "test:watch": "jest test --watch"
+    "test:all": "npm run test-node && npm run test-web",
+    "test:watch": "jest test --watch",
+    "test-node": "jest test",
+    "test-node:watch": "jest test --watch",
+    "test-web": "jest test --config=jest.config.web.js",
+    "test-web:watch": "jest test --watch --config=jest.config.web.js"
   },
   "repository": {
     "type": "git",
@@ -27,11 +32,13 @@
   },
   "homepage": "https://github.com/Mighty683/hotp#readme",
   "devDependencies": {
+    "@trust/webcrypto": "^0.9.2",
     "@types/jest": "^29.2.1",
     "@typescript-eslint/eslint-plugin": "5.42.0",
     "@typescript-eslint/parser": "5.42.0",
     "eslint": "8.26.0",
     "jest": "29.2.2",
+    "jest-environment-jsdom": "29.2.2",
     "prettier": "2.7.1",
     "ts-jest": "29.0.3",
     "typescript": "4.8.4"
