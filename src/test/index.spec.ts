@@ -1,4 +1,4 @@
-import { generateHOTP, generateTOTP } from "./index";
+import { generateHOTP, generateTOTP } from "../index";
 
 const secret = "12345678901234567890";
 describe("generateHOTP", () => {

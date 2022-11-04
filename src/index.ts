@@ -8,6 +8,9 @@ export type TOTPOptions = HOTPOptions & {
 };
 
 /**
+ * 
+ * TOTP: Time-Based One-Time Password Algorithm
+ * https://www.rfc-editor.org/rfc/rfc6238
  * @param secret - shared secret between client and server; each HOTP
   generator has a different and unique secret K.
  * @param options.t0 - is the Unix time to start counting time steps, default 0
@@ -22,6 +25,7 @@ export async function generateTOTP(secret: string, options: TOTPOptions) {
   let stepCounter = Math.floor((options.timestamp - _t0) / 1000 / stepTime);
   return generateHOTP(secret, stepCounter, options);
 }
+
 /**
  * HOTP: An HMAC-Based One-Time Password Algorithm
  * https://www.rfc-editor.org/rfc/rfc4226
@@ -41,7 +45,6 @@ export async function generateHOTP(
 ): Promise<string> {
   let hmacResult = await hmac(secret, counter);
   let digitsCount = options?.digitsCount || 6;
-
   let codeValue = dynamicTruncate(hmacResult) % 10 ** digitsCount;
   let result = codeValue.toString();
 
@@ -58,12 +61,14 @@ function dynamicTruncate(source: ArrayBuffer) {
   );
 }
 
-async function hmac(secret: string, counter: number): Promise<ArrayBuffer> {
-  if (global) {
-    return (await import("crypto"))
-      .createHmac("sha1", Buffer.from(secret))
-      .update(convertIntegerIntoByteBuffer(counter))
-      .digest();
+async function hmac(secret: string, counter: number): Promise<Uint8Array> {
+  if (isNodeEnv()) {
+    return new Uint8Array(
+      (await import("crypto"))
+        .createHmac("sha1", Buffer.from(secret))
+        .update(convertIntegerIntoByteBuffer(counter))
+        .digest()
+    );
   } else {
     let crypto = window.crypto;
     let key = await crypto.subtle.importKey(
@@ -78,15 +83,17 @@ async function hmac(secret: string, counter: number): Promise<ArrayBuffer> {
       false,
       ["sign"]
     );
-    return crypto.subtle.sign(
-      {
-        name: "HMAC",
-        hash: {
-          name: "SHA-1",
+    return new Uint8Array(
+      await crypto.subtle.sign(
+        {
+          name: "HMAC",
+          hash: {
+            name: "SHA-1",
+          },
         },
-      },
-      key,
-      convertIntegerIntoByteBuffer(counter)
+        key,
+        convertIntegerIntoByteBuffer(counter)
+      )
     );
   }
 }
@@ -105,4 +112,12 @@ function padZeroStart(source: string, length: number) {
     source = "0" + source;
   }
   return source;
+}
+
+function isNodeEnv() {
+  try {
+    return !!global;
+  } catch {
+    return false;
+  }
 }

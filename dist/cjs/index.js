@@ -38,6 +38,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateHOTP = exports.generateTOTP = void 0;
 /**
+ *
+ * TOTP: Time-Based One-Time Password Algorithm
+ * https://www.rfc-editor.org/rfc/rfc6238
  * @param secret - shared secret between client and server; each HOTP
   generator has a different and unique secret K.
  * @param options.t0 - is the Unix time to start counting time steps, default 0
@@ -96,16 +99,17 @@ function dynamicTruncate(source) {
 }
 function hmac(secret, counter) {
     return __awaiter(this, void 0, void 0, function () {
-        var crypto_1, key;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var _a, crypto_1, key, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    if (!global) return [3 /*break*/, 2];
+                    if (!isNodeEnv()) return [3 /*break*/, 2];
+                    _a = Uint8Array.bind;
                     return [4 /*yield*/, Promise.resolve().then(function () { return require("crypto"); })];
-                case 1: return [2 /*return*/, (_a.sent())
-                        .createHmac("sha1", Buffer.from(secret))
-                        .update(convertIntegerIntoByteBuffer(counter))
-                        .digest()];
+                case 1: return [2 /*return*/, new (_a.apply(Uint8Array, [void 0, (_c.sent())
+                            .createHmac("sha1", Buffer.from(secret))
+                            .update(convertIntegerIntoByteBuffer(counter))
+                            .digest()]))()];
                 case 2:
                     crypto_1 = window.crypto;
                     return [4 /*yield*/, crypto_1.subtle.importKey("raw", new TextEncoder().encode(secret), {
@@ -115,13 +119,15 @@ function hmac(secret, counter) {
                             },
                         }, false, ["sign"])];
                 case 3:
-                    key = _a.sent();
-                    return [2 /*return*/, crypto_1.subtle.sign({
+                    key = _c.sent();
+                    _b = Uint8Array.bind;
+                    return [4 /*yield*/, crypto_1.subtle.sign({
                             name: "HMAC",
                             hash: {
                                 name: "SHA-1",
                             },
                         }, key, convertIntegerIntoByteBuffer(counter))];
+                case 4: return [2 /*return*/, new (_b.apply(Uint8Array, [void 0, _c.sent()]))()];
             }
         });
     });
@@ -139,4 +145,12 @@ function padZeroStart(source, length) {
         source = "0" + source;
     }
     return source;
+}
+function isNodeEnv() {
+    try {
+        return !!global;
+    }
+    catch (_a) {
+        return false;
+    }
 }

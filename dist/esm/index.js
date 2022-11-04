@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 /**
+ *
+ * TOTP: Time-Based One-Time Password Algorithm
+ * https://www.rfc-editor.org/rfc/rfc6238
  * @param secret - shared secret between client and server; each HOTP
   generator has a different and unique secret K.
  * @param options.t0 - is the Unix time to start counting time steps, default 0
@@ -54,11 +57,11 @@ function dynamicTruncate(source) {
 }
 function hmac(secret, counter) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (global) {
-            return (yield import("crypto"))
+        if (isNodeEnv()) {
+            return new Uint8Array((yield import("crypto"))
                 .createHmac("sha1", Buffer.from(secret))
                 .update(convertIntegerIntoByteBuffer(counter))
-                .digest();
+                .digest());
         }
         else {
             let crypto = window.crypto;
@@ -68,12 +71,12 @@ function hmac(secret, counter) {
                     name: "SHA-1",
                 },
             }, false, ["sign"]);
-            return crypto.subtle.sign({
+            return new Uint8Array(yield crypto.subtle.sign({
                 name: "HMAC",
                 hash: {
                     name: "SHA-1",
                 },
-            }, key, convertIntegerIntoByteBuffer(counter));
+            }, key, convertIntegerIntoByteBuffer(counter)));
         }
     });
 }
@@ -90,4 +93,12 @@ function padZeroStart(source, length) {
         source = "0" + source;
     }
     return source;
+}
+function isNodeEnv() {
+    try {
+        return !!global;
+    }
+    catch (_a) {
+        return false;
+    }
 }

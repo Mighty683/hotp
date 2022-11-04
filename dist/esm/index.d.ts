@@ -7,6 +7,9 @@ export declare type TOTPOptions = HOTPOptions & {
     timestamp: number;
 };
 /**
+ *
+ * TOTP: Time-Based One-Time Password Algorithm
+ * https://www.rfc-editor.org/rfc/rfc6238
  * @param secret - shared secret between client and server; each HOTP
   generator has a different and unique secret K.
  * @param options.t0 - is the Unix time to start counting time steps, default 0
