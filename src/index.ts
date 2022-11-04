@@ -1,6 +1,7 @@
 export type HOTPOptions = {
   digitsCount?: number;
 };
+
 export type TOTPOptions = HOTPOptions & {
   stepTime?: number;
   t0?: number;
