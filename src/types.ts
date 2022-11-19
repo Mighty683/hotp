@@ -23,7 +23,7 @@ export type OCRAQuestionConfig = `Q${OCRAQuestionTypes}${number}`;
 
 export type OCRACounterConfig = `C`;
 
-export type OCRADataInput = string;
+export type OCRADataInput = `P${OCRAAlgorithms}` | `S${number}` | `T${number}M`;
 
 export type OCRASuiteStringWithCounter =
   `OCRA-1:HOTP-${OCRAAlgorithms}-${number}:${`${OCRACounterConfig}-${OCRAQuestionConfig}${

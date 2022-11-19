@@ -14,8 +14,8 @@ export const NodeAlgorithmsMap: SelectAlgorithmMap = {
 
 export const OCRAAlgorithmMap: SelectOCRAAlgorithmMap = {
   SHA1: "sha-1",
-  SHA256: "sha-1",
-  SHA512: "sha-1",
+  SHA256: "sha-256",
+  SHA512: "sha-512",
 };
 
 export const OCRA_QUESTION_BYTE_LENGTH = 128;

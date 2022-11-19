@@ -1,5 +1,9 @@
 import { generateHOTP, generateOCRA, generateTOTP } from "../index";
-import { OCRASuiteStringWithoutCounter } from "../types";
+import {
+  OCRASuiteString,
+  OCRASuiteStringWithCounter,
+  OCRASuiteStringWithoutCounter,
+} from "../types";
 
 const secret = "12345678901234567890";
 describe("generateHOTP", () => {
@@ -24,11 +28,14 @@ describe("generateHOTP", () => {
 
 describe("generateOCRA", () => {
   let OCRA_TEST_KEY = "12345678901234567890";
+  let OCRA_32BYTE_TEST_KEY = "12345678901234567890123456789012";
+  let pinSHA1 = "7110eda4d09e062aa5e4a390b0a572ac0d2c0220";
+
   test.concurrent.each<[OCRASuiteStringWithoutCounter, string, string]>([
     ["OCRA-1:HOTP-SHA1-6:QN08", "00000000", "237653"],
     ["OCRA-1:HOTP-SHA1-6:QN08", "11111111", "243178"],
     ["OCRA-1:HOTP-SHA1-6:QN08", "99999999", "294470"],
-  ])("OCRA SHA1 QN08", async (suite, question, response) => {
+  ])("OCRA-1:HOTP-SHA1-6:QN08", async (suite, question, response) => {
     expect(
       await generateOCRA(OCRA_TEST_KEY, {
         suite,
@@ -36,6 +43,24 @@ describe("generateOCRA", () => {
       })
     ).toBe(response);
   });
+
+  test.concurrent.each<[OCRASuiteStringWithCounter, string, number, string]>([
+    ["OCRA-1:HOTP-SHA256-8:C-QN08-PSHA1", "12345678", 0, "65347737"],
+    ["OCRA-1:HOTP-SHA256-8:C-QN08-PSHA1", "12345678", 1, "86775851"],
+    ["OCRA-1:HOTP-SHA256-8:C-QN08-PSHA1", "12345678", 2, "78192410"],
+  ])(
+    "OCRA-1:HOTP-SHA256-8:C-QN08-PSHA1",
+    async (suite, question, counter, response) => {
+      expect(
+        await generateOCRA(OCRA_32BYTE_TEST_KEY, {
+          suite,
+          question,
+          counter,
+          passwordHash: pinSHA1,
+        })
+      ).toBe(response);
+    }
+  );
 });
 
 describe("generateTOTP", () => {

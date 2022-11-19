@@ -15,14 +15,12 @@ import {
 
 export async function nodeHmac(
   secret: string,
-  counter: number | Int8Array,
+  counter: number | Int8Array | Uint8Array,
   algorithm?: AlgorithmOption
 ): Promise<Uint8Array> {
   let _algorithm = NodeAlgorithmsMap[algorithm] || NodeAlgorithmsMap["sha-1"];
   let byteArray =
-    typeof counter === "number"
-      ? convertIntegerIntoByteBuffer(counter)
-      : counter;
+    typeof counter === "number" ? integerToByteArray(counter) : counter;
   return new Uint8Array(
     (await import("crypto"))
       .createHmac(_algorithm, Buffer.from(secret))
@@ -33,15 +31,13 @@ export async function nodeHmac(
 
 export async function browserHmac(
   secret: string,
-  counter: number | Int8Array,
+  counter: number | Int8Array | Uint8Array,
   algorithm?: AlgorithmOption
 ): Promise<Uint8Array> {
   let _algorithm = WebAlgorithmsMap[algorithm] || WebAlgorithmsMap["sha-1"];
   let crypto = window.crypto;
   let byteArray =
-    typeof counter === "number"
-      ? convertIntegerIntoByteBuffer(counter)
-      : counter;
+    typeof counter === "number" ? integerToByteArray(counter) : counter;
   let key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -68,32 +64,33 @@ export async function browserHmac(
   );
 }
 
-export function convertStringIntoByteBuffer(source: string) {
-  let bytes = [];
+export function stringToByteArray(source: string) {
+  let bytes = new Uint8Array(source.length);
   for (let i = 0; i < source.length; i++) {
-    bytes.push(source.charCodeAt(i));
+    bytes.set([source.charCodeAt(i)], i);
   }
-  return new Int8Array(bytes);
+  return bytes;
 }
 
-export function convertHexStringIntoByteBuffer(source: string) {
-  let bytes = [];
+export function hexStringToByteArray(source: string) {
+  let bytes = new Uint8Array(source.length / 2);
   for (let i = 0; i < source.length; i += 2) {
-    bytes.push(parseInt(source.slice(i, i + 2), 16));
+    bytes.set([parseInt(source.slice(i, i + 2).toUpperCase(), 16)], i / 2);
   }
 
-  return new Int8Array(bytes);
+  return bytes;
 }
 
-export function convertIntegerIntoByteBuffer(integer: number, byteSize = 8) {
+export function integerToByteArray(integer: number, byteSize = 8) {
   let hexInteger = padZeroStart(integer.toString(16), byteSize * 2);
-  let bytes = [];
+  let bytes = new Uint8Array(byteSize);
   for (let counter = 0; counter < hexInteger.length; counter += 2) {
-    bytes.push(
-      parseInt(hexInteger.substring(counter, counter + 2), byteSize * 2)
+    bytes.set(
+      [parseInt(hexInteger.substring(counter, counter + 2), byteSize * 2)],
+      counter / 2
     );
   }
-  return new Int8Array(bytes);
+  return bytes;
 }
 
 export function padZeroStart(source: string, length: number) {
@@ -123,7 +120,7 @@ export function dynamicTruncate(source: ArrayBuffer) {
 
 export async function hmac(
   secret: string,
-  counter: number | Int8Array,
+  counter: number | Uint8Array | Int8Array,
   algorithm: AlgorithmOption
 ): Promise<Uint8Array> {
   if (isNodeEnv()) {
@@ -166,37 +163,37 @@ export function createOCRADataInput(
   { suite, question, counter, session, passwordHash, timestamp }: OCRAOptions,
   config: OCRASuiteConfig
 ) {
-  let suiteByteArray = convertStringIntoByteBuffer(suite);
-  let questionByteArray: Int8Array;
+  let suiteByteArray = stringToByteArray(suite);
+  let questionByteArray: Uint8Array;
   if (typeof question === "number") {
-    questionByteArray = convertIntegerIntoByteBuffer(
-      question,
-      OCRA_QUESTION_BYTE_LENGTH
-    );
+    questionByteArray = integerToByteArray(question, OCRA_QUESTION_BYTE_LENGTH);
   } else if (typeof question === "string") {
     if (config.questionType === "A") {
-      questionByteArray = new Int8Array(OCRA_QUESTION_BYTE_LENGTH);
-      questionByteArray.set(convertStringIntoByteBuffer(question), 0);
+      questionByteArray = new Uint8Array(OCRA_QUESTION_BYTE_LENGTH);
+      questionByteArray.set(stringToByteArray(question), 0);
     } else if (config.questionType === "N") {
-      questionByteArray = new Int8Array(OCRA_QUESTION_BYTE_LENGTH);
+      questionByteArray = new Uint8Array(OCRA_QUESTION_BYTE_LENGTH);
       questionByteArray.set(
-        convertHexStringIntoByteBuffer(
+        hexStringToByteArray(
           parseInt(question, 10).toString(16).padEnd(128, "0")
         ),
         0
       );
     }
   } else {
-    questionByteArray = new Int8Array(OCRA_QUESTION_BYTE_LENGTH);
+    questionByteArray = new Uint8Array(OCRA_QUESTION_BYTE_LENGTH);
     questionByteArray.set(question, 0);
   }
 
   let separatorByteArray = new Int8Array([0]);
-  let counterArray = counter && convertIntegerIntoByteBuffer(counter);
-  let sessionArray = session && convertStringIntoByteBuffer(session);
-  let passwordArray = passwordHash && convertStringIntoByteBuffer(passwordHash);
-  let timestampArray = timestamp && convertIntegerIntoByteBuffer(timestamp);
-  let dataInput = new Int8Array([
+  let counterArray =
+    typeof counter === "number"
+      ? integerToByteArray(counter)
+      : new Uint8Array(0);
+  let sessionArray = session && stringToByteArray(session);
+  let passwordArray = passwordHash && hexStringToByteArray(passwordHash);
+  let timestampArray = timestamp && integerToByteArray(timestamp);
+  let dataInput = new Uint8Array([
     ...suiteByteArray,
     ...(separatorByteArray || []),
     ...(counterArray || []),
@@ -205,6 +202,5 @@ export function createOCRADataInput(
     ...(sessionArray || []),
     ...(timestampArray || []),
   ]);
-
   return dataInput;
 }
