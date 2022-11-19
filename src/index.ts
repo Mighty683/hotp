@@ -70,7 +70,7 @@ export async function generateHOTP(
  * depends on question type.
  */
 export async function generateOCRA(secret: string, options: OCRAOptions) {
-  let OCRAConfig = parseOCRASuite(options.suite as OCRASuiteString);
+  let OCRAConfig = parseOCRASuite(options.suite);
   let dataInput = createOCRADataInput(options, OCRAConfig);
   let hmacResult = await hmac(
     secret,
