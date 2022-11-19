@@ -1,4 +1,5 @@
-import { generateHOTP, generateTOTP } from "../index";
+import { generateHOTP, generateOCRA, generateTOTP } from "../index";
+import { OCRASuiteStringWithoutCounter } from "../types";
 
 const secret = "12345678901234567890";
 describe("generateHOTP", () => {
@@ -18,6 +19,22 @@ describe("generateHOTP", () => {
         algorithm: "sha-256",
       })
     ).toBe("875740");
+  });
+});
+
+describe("generateOCRA", () => {
+  let OCRA_TEST_KEY = "12345678901234567890";
+  test.concurrent.each<[OCRASuiteStringWithoutCounter, string, string]>([
+    ["OCRA-1:HOTP-SHA1-6:QN08", "00000000", "237653"],
+    ["OCRA-1:HOTP-SHA1-6:QN08", "11111111", "243178"],
+    ["OCRA-1:HOTP-SHA1-6:QN08", "99999999", "294470"],
+  ])("OCRA SHA1 QN08", async (suite, question, response) => {
+    expect(
+      await generateOCRA(OCRA_TEST_KEY, {
+        suite,
+        question,
+      })
+    ).toBe(response);
   });
 });
 

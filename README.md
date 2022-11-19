@@ -4,6 +4,7 @@ Typescript implementation of:
 
 - [`HOTP: An HMAC-Based One-Time Password Algorithm`](https://www.rfc-editor.org/rfc/rfc4226)
 - [`TOTP: Time-Based One-Time Password Algorithm`](https://www.rfc-editor.org/rfc/rfc6238)
+- [`OCRA: OATH Challenge-Response Algorithm`](https://www.rfc-editor.org/rfc/rfc6287)
 
 Works both in `node` and `browser` environment.
 

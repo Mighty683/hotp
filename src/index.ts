@@ -1,5 +1,19 @@
-import { TOTPOptions, HOTPOptions, AlgorithmOption } from "./types";
-import { browserHmac, isNodeEnv, nodeHmac, padZeroStart } from "./helpers";
+import {
+  TOTPOptions,
+  HOTPOptions,
+  OCRAOptions,
+  OCRASuiteString,
+} from "./types";
+
+import {
+  createOCRADataInput,
+  dynamicTruncate,
+  hmac,
+  padZeroStart,
+  parseOCRASuite,
+} from "./helpers";
+
+import { OCRAAlgorithmMap } from "./enums";
 
 /**
  * 
@@ -47,24 +61,25 @@ export async function generateHOTP(
   return padZeroStart(result, digitsCount);
 }
 
-function dynamicTruncate(source: ArrayBuffer) {
-  let offset = source[source.byteLength - 1] & 0xf;
-  return (
-    ((source[offset] & 0x7f) << 24) |
-    ((source[offset + 1] & 0xff) << 16) |
-    ((source[offset + 2] & 0xff) << 8) |
-    (source[offset + 3] & 0xff)
+/**
+ * OCRA: OATH Challenge-Response Algorithm
+ * https://www.rfc-editor.org/rfc/rfc6287
+ *
+ * @param options.question - number or string or ByteArray
+ * if string can be alphanumerical or number string eg: "00000000"
+ * depends on question type.
+ */
+export async function generateOCRA(secret: string, options: OCRAOptions) {
+  let OCRAConfig = parseOCRASuite(options.suite as OCRASuiteString);
+  let dataInput = createOCRADataInput(options, OCRAConfig);
+  let hmacResult = await hmac(
+    secret,
+    dataInput,
+    OCRAAlgorithmMap[OCRAConfig.algorithm]
   );
-}
+  let codeValue = dynamicTruncate(hmacResult) % 10 ** OCRAConfig.digitsCount;
 
-async function hmac(
-  secret: string,
-  counter: number,
-  algorithm: AlgorithmOption
-): Promise<Uint8Array> {
-  if (isNodeEnv()) {
-    return nodeHmac(secret, counter, algorithm);
-  } else {
-    return browserHmac(secret, counter, algorithm);
-  }
+  let result = codeValue.toString();
+
+  return padZeroStart(result, OCRAConfig.digitsCount);
 }

@@ -5,6 +5,7 @@
     "module": "esnext",
     "skipLibCheck": true,
     "declaration": true,
+    "downlevelIteration": true,
     "rootDir": "src",
     "isolatedModules": true,
     "baseUrl": "./"
