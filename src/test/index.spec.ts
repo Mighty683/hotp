@@ -44,6 +44,20 @@ describe("generateOCRA", () => {
     ).toBe(response);
   });
 
+  test.concurrent.each<[OCRASuiteStringWithoutCounter, string, string]>([
+    ["OCRA-1:HOTP-SHA256-8:QN08-PSHA1", "00000000", "83238735"],
+    ["OCRA-1:HOTP-SHA256-8:QN08-PSHA1", "11111111", "01501458"],
+    ["OCRA-1:HOTP-SHA256-8:QN08-PSHA1", "44444444", "86807031"],
+  ])("OCRA-1:HOTP-SHA256-8:QN08-PSHA1", async (suite, question, response) => {
+    expect(
+      await generateOCRA(OCRA_32BYTE_TEST_KEY, {
+        suite,
+        question,
+        passwordHash: pinSHA1,
+      })
+    ).toBe(response);
+  });
+
   test.concurrent.each<[OCRASuiteStringWithCounter, string, number, string]>([
     ["OCRA-1:HOTP-SHA256-8:C-QN08-PSHA1", "12345678", 0, "65347737"],
     ["OCRA-1:HOTP-SHA256-8:C-QN08-PSHA1", "12345678", 1, "86775851"],
