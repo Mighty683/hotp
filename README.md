@@ -43,6 +43,7 @@ OCRA for now has partial support of:
 Missing support:
 
 - Session data
+- Timer data
 
 ```ts
 import { generateOCRA } from "hotp-ts";
