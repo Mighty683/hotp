@@ -31,3 +31,25 @@ let totp = generateTOTP("some-secret-to-share-with-server", {
   timestamp: Date.now(),
 });
 ```
+
+#### OCRA
+
+OCRA for now has partial support of:
+
+- Numeric question
+- Pin sha
+- Counter
+
+Missing support:
+
+- Session data
+
+```ts
+import { generateOCRA } from "hotp-ts";
+
+let ocraResponse = generateOCRA("secret", {
+  suite: "OCRA-1:HOTP-SHA256-8:QN08-PSHA1",
+  question: "00000000",
+  passwordHash: "7110eda4d09e062aa5e4a390b0a572ac0d2c0220",
+});
+```
