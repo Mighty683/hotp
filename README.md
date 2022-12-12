@@ -34,7 +34,7 @@ let totp = generateTOTP("some-secret-to-share-with-server", {
 
 #### OCRA
 
-OCRA for now has partial support of:
+OCRA for now has support of:
 
 - Numeric question
 - Pin sha
