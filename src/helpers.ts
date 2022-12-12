@@ -15,12 +15,12 @@ import {
 
 export async function nodeHmac(
   secret: string,
-  counter: number | Int8Array | Uint8Array,
+  input: number | Int8Array | Uint8Array,
   algorithm?: AlgorithmOption
 ): Promise<Uint8Array> {
   let _algorithm = NodeAlgorithmsMap[algorithm] || NodeAlgorithmsMap["sha-1"];
   let byteArray =
-    typeof counter === "number" ? integerToByteArray(counter) : counter;
+    typeof input === "number" ? integerToByteArray(input) : input;
   return new Uint8Array(
     (await import("crypto"))
       .createHmac(_algorithm, Buffer.from(secret))
@@ -31,13 +31,13 @@ export async function nodeHmac(
 
 export async function browserHmac(
   secret: string,
-  counter: number | Int8Array | Uint8Array,
+  input: number | Int8Array | Uint8Array,
   algorithm?: AlgorithmOption
 ): Promise<Uint8Array> {
   let _algorithm = WebAlgorithmsMap[algorithm] || WebAlgorithmsMap["sha-1"];
   let crypto = window.crypto;
   let byteArray =
-    typeof counter === "number" ? integerToByteArray(counter) : counter;
+    typeof input === "number" ? integerToByteArray(input) : input;
   let key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -120,13 +120,13 @@ export function dynamicTruncate(source: ArrayBuffer) {
 
 export async function hmac(
   secret: string,
-  counter: number | Uint8Array | Int8Array,
+  input: number | Uint8Array | Int8Array,
   algorithm: AlgorithmOption
 ): Promise<Uint8Array> {
   if (isNodeEnv()) {
-    return nodeHmac(secret, counter, algorithm);
+    return nodeHmac(secret, input, algorithm);
   } else {
-    return browserHmac(secret, counter, algorithm);
+    return browserHmac(secret, input, algorithm);
   }
 }
 
@@ -138,16 +138,14 @@ export function parseOCRASuite(suite: OCRASuiteString): OCRASuiteConfig {
   let digitsCount = parseInt(suiteAlgorithmParts[2]);
   // Question
   let suiteQuestionDataParts = suiteParts[2].split("-");
-  let counterEnabled = suiteQuestionDataParts.length === 3;
-  let suiteQuestionPart = counterEnabled
-    ? suiteQuestionDataParts[1]
-    : suiteQuestionDataParts[0];
+  let counterEnabled = suiteQuestionDataParts.includes("C");
+  let suiteQuestionPart = suiteQuestionDataParts[counterEnabled ? 1 : 0];
   let questionType = suiteQuestionPart[1] as OCRAQuestionTypes;
   let questionLength = parseInt(suiteQuestionPart.match(/\d+/)[0]);
   // Data
-  let dataInput = (
-    counterEnabled ? suiteQuestionDataParts[2] : suiteQuestionDataParts[1]
-  ) as OCRADataInput;
+  let dataInput = suiteQuestionDataParts[counterEnabled ? 2 : 1] as
+    | OCRADataInput
+    | undefined;
 
   return {
     algorithm,

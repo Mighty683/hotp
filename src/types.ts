@@ -61,6 +61,6 @@ export type OCRASuiteConfig = {
   digitsCount: number;
   questionType: OCRAQuestionTypes;
   questionLength: number;
-  dataInput: OCRADataInput;
+  dataInput?: OCRADataInput;
   counterEnabled: boolean;
 };
