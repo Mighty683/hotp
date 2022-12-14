@@ -13,6 +13,7 @@ describe("helpers", () => {
           questionLength: 8,
           dataInput: "PSHA1",
           counterEnabled: true,
+          timerEnabled: false,
         },
       ],
       [
@@ -24,6 +25,7 @@ describe("helpers", () => {
           questionLength: 10,
           dataInput: "T1M",
           counterEnabled: false,
+          timerEnabled: true,
         },
       ],
       [
@@ -35,9 +37,9 @@ describe("helpers", () => {
           questionLength: 8,
           dataInput: "S512",
           counterEnabled: false,
+          timerEnabled: false,
         },
       ],
-      // [, {}],
     ])("parseOCRASuite", (input: OCRASuiteString, output: OCRASuiteConfig) => {
       expect(parseOCRASuite(input)).toEqual(output);
     });

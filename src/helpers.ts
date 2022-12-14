@@ -19,8 +19,7 @@ export async function nodeHmac(
   algorithm?: AlgorithmOption
 ): Promise<Uint8Array> {
   let _algorithm = NodeAlgorithmsMap[algorithm] || NodeAlgorithmsMap["sha-1"];
-  let byteArray =
-    typeof input === "number" ? integerToByteArray(input) : input;
+  let byteArray = typeof input === "number" ? integerToByteArray(input) : input;
   return new Uint8Array(
     (await import("crypto"))
       .createHmac(_algorithm, Buffer.from(secret))
@@ -36,8 +35,7 @@ export async function browserHmac(
 ): Promise<Uint8Array> {
   let _algorithm = WebAlgorithmsMap[algorithm] || WebAlgorithmsMap["sha-1"];
   let crypto = window.crypto;
-  let byteArray =
-    typeof input === "number" ? integerToByteArray(input) : input;
+  let byteArray = typeof input === "number" ? integerToByteArray(input) : input;
   let key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -146,6 +144,7 @@ export function parseOCRASuite(suite: OCRASuiteString): OCRASuiteConfig {
   let dataInput = suiteQuestionDataParts[counterEnabled ? 2 : 1] as
     | OCRADataInput
     | undefined;
+  let timerEnabled = dataInput?.startsWith("T1M");
 
   return {
     algorithm,
@@ -153,6 +152,7 @@ export function parseOCRASuite(suite: OCRASuiteString): OCRASuiteConfig {
     questionType,
     questionLength,
     dataInput,
+    timerEnabled,
     counterEnabled,
   };
 }
@@ -185,12 +185,17 @@ export function createOCRADataInput(
 
   let separatorByteArray = new Int8Array([0]);
   let counterArray =
-    typeof counter === "number"
-      ? integerToByteArray(counter)
-      : new Uint8Array(0);
+    config.counterEnabled &&
+    typeof counter === "number" &&
+    integerToByteArray(counter);
   let sessionArray = session && stringToByteArray(session);
   let passwordArray = passwordHash && hexStringToByteArray(passwordHash);
-  let timestampArray = timestamp && integerToByteArray(timestamp);
+  let timestampArray =
+    config.timerEnabled &&
+    timestamp &&
+    (typeof timestamp === "number"
+      ? integerToByteArray(timestamp)
+      : stringToByteArray(padZeroStart(timestamp, 16)));
   let dataInput = new Uint8Array([
     ...suiteByteArray,
     ...(separatorByteArray || []),

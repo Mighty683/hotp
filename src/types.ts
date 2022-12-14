@@ -63,4 +63,5 @@ export type OCRASuiteConfig = {
   questionLength: number;
   dataInput?: OCRADataInput;
   counterEnabled: boolean;
+  timerEnabled: boolean;
 };

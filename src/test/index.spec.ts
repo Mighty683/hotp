@@ -61,7 +61,6 @@ describe("library", () => {
       ).toBe(response);
     });
 
-
     test.concurrent.each<[OCRASuiteStringWithoutCounter, string, string]>([
       ["OCRA-1:HOTP-SHA256-8:QA08", "SIG10000", "53095496"],
       ["OCRA-1:HOTP-SHA256-8:QA08", "SIG11000", "04110475"],
@@ -105,6 +104,28 @@ describe("library", () => {
             suite,
             question,
             counter,
+          })
+        ).toBe(response);
+      }
+    );
+
+    const testDate = new Date("Mar 25 2008, 12:06:30 GMT");
+    const minutesCount = Math.floor(testDate.getTime() / 60000);
+
+    test.concurrent.each<
+      [OCRASuiteStringWithoutCounter, string, number, string]
+    >([
+      ["OCRA-1:HOTP-SHA512-8:QA10-T1M", "SIG1000000", minutesCount, "77537423"],
+      ["OCRA-1:HOTP-SHA512-8:QA10-T1M", "SIG1100000", minutesCount, "31970405"],
+      ["OCRA-1:HOTP-SHA512-8:QA10-T1M", "SIG1200000", minutesCount, "10235557"],
+    ])(
+      "OCRA-1:HOTP-SHA512-8:QA10-T1M",
+      async (suite, question, timestamp, response) => {
+        expect(
+          await generateOCRA(OCRA_64BYTE_TEST_KEY, {
+            suite,
+            question,
+            timestamp,
           })
         ).toBe(response);
       }
