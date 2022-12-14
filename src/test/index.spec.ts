@@ -61,6 +61,20 @@ describe("library", () => {
       ).toBe(response);
     });
 
+
+    test.concurrent.each<[OCRASuiteStringWithoutCounter, string, string]>([
+      ["OCRA-1:HOTP-SHA256-8:QA08", "SIG10000", "53095496"],
+      ["OCRA-1:HOTP-SHA256-8:QA08", "SIG11000", "04110475"],
+      ["OCRA-1:HOTP-SHA256-8:QA08", "SIG12000", "31331128"],
+    ])("OCRA-1:HOTP-SHA256-8:QA08", async (suite, question, response) => {
+      expect(
+        await generateOCRA(OCRA_32BYTE_TEST_KEY, {
+          suite,
+          question,
+        })
+      ).toBe(response);
+    });
+
     test.concurrent.each<[OCRASuiteStringWithCounter, string, number, string]>([
       ["OCRA-1:HOTP-SHA256-8:C-QN08-PSHA1", "12345678", 0, "65347737"],
       ["OCRA-1:HOTP-SHA256-8:C-QN08-PSHA1", "12345678", 1, "86775851"],
