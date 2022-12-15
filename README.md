@@ -19,7 +19,7 @@ Install:
 ```ts
 import { generateHOTP } from "hotp-ts";
 
-let hotp = generateHOTP("some-secret-to-share-with-server", 0);
+let hotp = await generateHOTP("some-secret-to-share-with-server", 0);
 ```
 
 #### TOTP
@@ -27,7 +27,7 @@ let hotp = generateHOTP("some-secret-to-share-with-server", 0);
 ```ts
 import { generateTOTP } from "hotp-ts";
 
-let totp = generateTOTP("some-secret-to-share-with-server", {
+let totp = await generateTOTP("some-secret-to-share-with-server", {
   timestamp: Date.now(),
 });
 ```
@@ -37,7 +37,7 @@ let totp = generateTOTP("some-secret-to-share-with-server", {
 ```ts
 import { generateOCRA } from "hotp-ts";
 
-let ocraResponse = generateOCRA("secret", {
+let ocraResponse = await generateOCRA("secret", {
   suite: "OCRA-1:HOTP-SHA256-8:QN08-PSHA1",
   question: "00000000",
   passwordHash: "7110eda4d09e062aa5e4a390b0a572ac0d2c0220",
