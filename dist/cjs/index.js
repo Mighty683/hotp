@@ -36,8 +36,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateHOTP = exports.generateTOTP = void 0;
+exports.generateOCRA = exports.generateHOTP = exports.generateTOTP = void 0;
 var helpers_1 = require("./helpers");
+var enums_1 = require("./enums");
 /**
  *
  * TOTP: Time-Based One-Time Password Algorithm
@@ -80,11 +81,11 @@ function generateHOTP(secret, counter, options) {
         var hmacResult, digitsCount, codeValue, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, hmac(secret, counter, options === null || options === void 0 ? void 0 : options.algorithm)];
+                case 0: return [4 /*yield*/, (0, helpers_1.hmac)(secret, counter, options === null || options === void 0 ? void 0 : options.algorithm)];
                 case 1:
                     hmacResult = _a.sent();
                     digitsCount = (options === null || options === void 0 ? void 0 : options.digitsCount) || 6;
-                    codeValue = dynamicTruncate(hmacResult) % Math.pow(10, digitsCount);
+                    codeValue = (0, helpers_1.dynamicTruncate)(hmacResult) % Math.pow(10, digitsCount);
                     result = codeValue.toString();
                     return [2 /*return*/, (0, helpers_1.padZeroStart)(result, digitsCount)];
             }
@@ -92,23 +93,30 @@ function generateHOTP(secret, counter, options) {
     });
 }
 exports.generateHOTP = generateHOTP;
-function dynamicTruncate(source) {
-    var offset = source[source.byteLength - 1] & 0xf;
-    return (((source[offset] & 0x7f) << 24) |
-        ((source[offset + 1] & 0xff) << 16) |
-        ((source[offset + 2] & 0xff) << 8) |
-        (source[offset + 3] & 0xff));
-}
-function hmac(secret, counter, algorithm) {
+/**
+ * OCRA: OATH Challenge-Response Algorithm
+ * https://www.rfc-editor.org/rfc/rfc6287
+ *
+ * @param options.question - number or string or ByteArray
+ * if string can be alphanumerical or number string eg: "00000000"
+ * depends on question type.
+ */
+function generateOCRA(secret, options) {
     return __awaiter(this, void 0, void 0, function () {
+        var OCRAConfig, dataInput, hmacResult, codeValue, result;
         return __generator(this, function (_a) {
-            if ((0, helpers_1.isNodeEnv)()) {
-                return [2 /*return*/, (0, helpers_1.nodeHmac)(secret, counter, algorithm)];
+            switch (_a.label) {
+                case 0:
+                    OCRAConfig = (0, helpers_1.parseOCRASuite)(options.suite);
+                    dataInput = (0, helpers_1.createOCRADataInput)(options, OCRAConfig);
+                    return [4 /*yield*/, (0, helpers_1.hmac)(secret, dataInput, enums_1.OCRAAlgorithmMap[OCRAConfig.algorithm])];
+                case 1:
+                    hmacResult = _a.sent();
+                    codeValue = (0, helpers_1.dynamicTruncate)(hmacResult) % Math.pow(10, OCRAConfig.digitsCount);
+                    result = codeValue.toString();
+                    return [2 /*return*/, (0, helpers_1.padZeroStart)(result, OCRAConfig.digitsCount)];
             }
-            else {
-                return [2 /*return*/, (0, helpers_1.browserHmac)(secret, counter, algorithm)];
-            }
-            return [2 /*return*/];
         });
     });
 }
+exports.generateOCRA = generateOCRA;

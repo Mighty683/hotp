@@ -7,7 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { browserHmac, isNodeEnv, nodeHmac, padZeroStart } from "./helpers";
+import { createOCRADataInput, dynamicTruncate, hmac, padZeroStart, parseOCRASuite, } from "./helpers";
+import { OCRAAlgorithmMap } from "./enums";
 /**
  *
  * TOTP: Time-Based One-Time Password Algorithm
@@ -50,20 +51,21 @@ export function generateHOTP(secret, counter, options) {
         return padZeroStart(result, digitsCount);
     });
 }
-function dynamicTruncate(source) {
-    let offset = source[source.byteLength - 1] & 0xf;
-    return (((source[offset] & 0x7f) << 24) |
-        ((source[offset + 1] & 0xff) << 16) |
-        ((source[offset + 2] & 0xff) << 8) |
-        (source[offset + 3] & 0xff));
-}
-function hmac(secret, counter, algorithm) {
+/**
+ * OCRA: OATH Challenge-Response Algorithm
+ * https://www.rfc-editor.org/rfc/rfc6287
+ *
+ * @param options.question - number or string or ByteArray
+ * if string can be alphanumerical or number string eg: "00000000"
+ * depends on question type.
+ */
+export function generateOCRA(secret, options) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (isNodeEnv()) {
-            return nodeHmac(secret, counter, algorithm);
-        }
-        else {
-            return browserHmac(secret, counter, algorithm);
-        }
+        let OCRAConfig = parseOCRASuite(options.suite);
+        let dataInput = createOCRADataInput(options, OCRAConfig);
+        let hmacResult = yield hmac(secret, dataInput, OCRAAlgorithmMap[OCRAConfig.algorithm]);
+        let codeValue = dynamicTruncate(hmacResult) % Math.pow(10, OCRAConfig.digitsCount);
+        let result = codeValue.toString();
+        return padZeroStart(result, OCRAConfig.digitsCount);
     });
 }

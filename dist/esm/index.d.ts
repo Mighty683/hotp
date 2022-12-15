@@ -1,4 +1,4 @@
-import { TOTPOptions, HOTPOptions } from "./types";
+import { TOTPOptions, HOTPOptions, OCRAOptions } from "./types";
 /**
  *
  * TOTP: Time-Based One-Time Password Algorithm
@@ -26,3 +26,12 @@ export declare function generateTOTP(secret: string, options: TOTPOptions): Prom
  * @returns
  */
 export declare function generateHOTP(secret: string, counter: number, options?: HOTPOptions): Promise<string>;
+/**
+ * OCRA: OATH Challenge-Response Algorithm
+ * https://www.rfc-editor.org/rfc/rfc6287
+ *
+ * @param options.question - number or string or ByteArray
+ * if string can be alphanumerical or number string eg: "00000000"
+ * depends on question type.
+ */
+export declare function generateOCRA(secret: string, options: OCRAOptions): Promise<string>;
